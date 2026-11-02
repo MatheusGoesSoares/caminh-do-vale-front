@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 60">
+  <!-- Icon: rounded square with road + valley + leaf -->
+  <g transform="translate(2, 2)">
+    <rect width="56" height="56" rx="12" fill="#164D38"/>
+    <!-- Valley hills -->
+    <path d="M0 38 Q14 24 28 34 Q42 44 56 30 L56 56 L0 56 Z" fill="#328568" opacity="0.5"/>
+    <path d="M0 42 Q16 32 28 38 Q40 44 56 36 L56 56 L0 56 Z" fill="#A8CDB0" opacity="0.35"/>
+    <!-- Winding road -->
+    <path d="M24 50 Q21 40 26 34 Q31 28 28 20 Q25 12 30 5" fill="none" stroke="#E7F2E9" stroke-width="3" stroke-linecap="round"/>
+    <path d="M27 50 Q24 40 29 34 Q34 28 31 20 Q28 12 33 5" fill="none" stroke="#E7F2E9" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="2 2.5"/>
+    <!-- Leaf -->
+    <path d="M34 8 Q39 3 44 8 Q39 13 34 8 Z" fill="#A8CDB0"/>
+    <line x1="34" y1="8" x2="40" y2="5.5" stroke="#164D38" stroke-width="0.7"/>
+  </g>
+  <!-- Text -->
+  <text font-family="'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif" font-weight="700" fill="#164D38">
+    <tspan x="70" y="28" font-size="20">Caminho</tspan>
+    <tspan x="70" y="50" font-size="20">do Vale</tspan>
+  </text>
+  <!-- Decorative leaf on the "o" of Caminho -->
+  <path d="M145 16 Q148 12 151 16 Q148 20 145 16 Z" fill="#328568" opacity="0.7"/>
+  <!-- Subtle road element under "V" of Vale -->
+  <path d="M89 38 L96 52" fill="none" stroke="#A8CDB0" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+</svg>

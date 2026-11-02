@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Primary palette */
+  --color-primary: #1A7A44;
+  --color-primary-light: #1F8A4D;
+  --color-primary-dark: #16643A;
+  --color-secondary: #1F8A4D;
+  --color-secondary-light: #2FA866;
+  --color-accent: #BFE3C8;
+  --color-accent-light: #D7EEDD;
+
+  /* Backgrounds & surfaces */
+  --color-background: #F4FAF5;
+  --color-surface: #FFFFFF;
+  --color-highlight: #E6F4EA;
+
+  /* Text */
+  --color-text-primary: #123A24;
+  --color-text-secondary: #5B7264;
+  --color-text-muted: #8CA596;
+
+  /* Accent */
+  --color-gold: #F2C94C;
+  --color-gold-light: #F7DA7E;
+
+  /* Semantic */
+  --color-success: #1F8A4D;
+  --color-success-light: #E6F4EA;
+  --color-warning: #E08A2E;
+  --color-warning-light: #FEF3E6;
+  --color-critical: #D94F4F;
+  --color-critical-light: #fce8e6;
+  --color-info: #427DA5;
+  --color-info-light: #e3eef6;
+
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-dropdown: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+/* Leaflet container fix */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: var(--radius-lg);
+}
+
+/* Focus ring */
+@layer base {
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}

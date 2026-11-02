@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 60">
+  <!-- Monochrome dark green version for light backgrounds -->
+  <g transform="translate(2, 2)">
+    <rect width="56" height="56" rx="12" fill="none" stroke="#164D38" stroke-width="2"/>
+    <path d="M0 38 Q14 24 28 34 Q42 44 56 30 L56 56 L0 56 Z" fill="#164D38" opacity="0.15"/>
+    <path d="M24 50 Q21 40 26 34 Q31 28 28 20 Q25 12 30 5" fill="none" stroke="#164D38" stroke-width="3" stroke-linecap="round"/>
+    <path d="M27 50 Q24 40 29 34 Q34 28 31 20 Q28 12 33 5" fill="none" stroke="#164D38" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="2 2.5"/>
+    <path d="M34 8 Q39 3 44 8 Q39 13 34 8 Z" fill="#164D38" opacity="0.6"/>
+  </g>
+  <text font-family="'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif" font-weight="700" fill="#164D38">
+    <tspan x="70" y="28" font-size="20">Caminho</tspan>
+    <tspan x="70" y="50" font-size="20">do Vale</tspan>
+  </text>
+</svg>

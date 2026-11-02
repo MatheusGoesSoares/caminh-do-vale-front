@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect x="8" y="8" width="176" height="176" rx="36" fill="#164D38"/>
+  <!-- Valley hills -->
+  <path d="M8 128 Q48 88 96 118 Q144 148 184 104 L184 184 L8 184 Z" fill="#328568" opacity="0.5"/>
+  <path d="M8 142 Q56 112 96 134 Q136 156 184 126 L184 184 L8 184 Z" fill="#A8CDB0" opacity="0.35"/>
+  <!-- Winding road -->
+  <path d="M84 170 Q76 140 90 120 Q104 100 96 74 Q88 48 104 24" fill="none" stroke="#E7F2E9" stroke-width="10" stroke-linecap="round"/>
+  <path d="M94 170 Q86 140 100 120 Q114 100 106 74 Q98 48 114 24" fill="none" stroke="#E7F2E9" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 8"/>
+  <!-- Leaf -->
+  <path d="M116 32 Q130 14 144 32 Q130 50 116 32 Z" fill="#A8CDB0"/>
+  <line x1="116" y1="32" x2="134" y2="22" stroke="#164D38" stroke-width="2.5"/>
+</svg>

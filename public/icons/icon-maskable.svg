@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full background for maskable safe zone -->
+  <rect width="512" height="512" fill="#164D38"/>
+  <!-- Design within center 80% (51.2 to 460.8) -->
+  <g transform="translate(51, 51) scale(0.8)">
+    <!-- Valley hills -->
+    <path d="M0 340 Q128 240 256 316 Q384 392 512 280 L512 512 L0 512 Z" fill="#328568" opacity="0.5"/>
+    <path d="M0 380 Q150 300 256 360 Q362 420 512 340 L512 512 L0 512 Z" fill="#A8CDB0" opacity="0.35"/>
+    <!-- Winding road -->
+    <path d="M224 460 Q204 380 240 324 Q276 268 256 200 Q236 132 278 64" fill="none" stroke="#E7F2E9" stroke-width="28" stroke-linecap="round"/>
+    <path d="M252 460 Q232 380 268 324 Q304 268 284 200 Q264 132 306 64" fill="none" stroke="#E7F2E9" stroke-width="8" stroke-linecap="round" stroke-dasharray="16 20"/>
+    <!-- Leaf -->
+    <path d="M312 86 Q348 42 384 86 Q348 130 312 86 Z" fill="#A8CDB0"/>
+    <line x1="312" y1="86" x2="356" y2="60" stroke="#164D38" stroke-width="6"/>
+  </g>
+</svg>
