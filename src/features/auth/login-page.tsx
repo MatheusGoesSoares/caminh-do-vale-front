@@ -12,8 +12,9 @@ function useWakeServer(): ServerState {
   const [state, setState] = useState<ServerState>("waking");
   useEffect(() => {
     let cancelled = false;
-    fetch(`${new URL(API_BASE_URL).origin}/`, { signal: AbortSignal.timeout(90_000) })
-      .then((res) => !cancelled && setState(res.ok ? "ready" : "unreachable"))
+    // no-cors: this request only wakes the server, so it must not depend on CORS being configured.
+    fetch(`${new URL(API_BASE_URL).origin}/`, { mode: "no-cors", signal: AbortSignal.timeout(90_000) })
+      .then(() => !cancelled && setState("ready"))
       .catch(() => !cancelled && setState("unreachable"));
     return () => {
       cancelled = true;

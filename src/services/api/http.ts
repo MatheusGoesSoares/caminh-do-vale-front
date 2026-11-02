@@ -48,10 +48,13 @@ async function send(url: string, init: RequestInit, token?: string): Promise<Res
       },
     });
   } catch {
+    // The browser reports a CORS block and a network failure the same way.
     throw new ApiError(
       controller.signal.aborted
         ? "O servidor demorou demais para responder."
-        : "Não foi possível conectar ao servidor.",
+        : navigator.onLine
+          ? `Não foi possível conectar ao servidor. Se continuar, confirme se ${window.location.origin} está liberado no back (CORS).`
+          : "Sem conexão com a internet.",
       0
     );
   } finally {
