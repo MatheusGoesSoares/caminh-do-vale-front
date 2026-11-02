@@ -1,8 +1,12 @@
 import { getSession, setSession, updateAccessToken, type Session } from "./session";
 
-export const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL ?? "https://projeto-integrador-time1.onrender.com/api/v1"
-).replace(/\/$/, "");
+// On Vercel, "/api/v1" goes through the proxy in vercel.json, so the backend's CORS list doesn't matter.
+const onVercel = window.location.hostname.endsWith(".vercel.app");
+const configuredBase = onVercel
+  ? "/api/v1"
+  : (import.meta.env.VITE_API_BASE_URL ?? "https://projeto-integrador-time1.onrender.com/api/v1");
+
+export const API_BASE_URL = new URL(configuredBase, window.location.origin).href.replace(/\/$/, "");
 
 // The free Render instance sleeps after 15 min idle; waking it can take ~1 min.
 const REQUEST_TIMEOUT_MS = 90_000;
