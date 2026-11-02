@@ -147,6 +147,32 @@ describe("ApiDataProvider", () => {
     });
   });
 
+  it("shares one backend load across the screens that open together", async () => {
+    const provider = new ApiDataProvider();
+    await Promise.all([
+      provider.getDashboardSummary(),
+      provider.getShipments(),
+      provider.getAlerts({ status: "active" }),
+      provider.getNotifications(),
+      provider.getShipmentById("VG-2"),
+    ]);
+    const paths = fetchMock.mock.calls.map(([url]) => new URL(url as string).pathname.replace("/api/v1", ""));
+    const count = (p: string) => paths.filter((x) => x === p).length;
+    expect(count("/shipments")).toBe(1);
+    expect(count("/shipments/2/summary")).toBe(1);
+    expect(count("/alerts")).toBe(1);
+    expect(count("/locations")).toBe(1);
+  });
+
+  it("reloads alerts after acknowledging one", async () => {
+    const provider = new ApiDataProvider();
+    await provider.getAlerts();
+    await provider.acknowledgeAlert("7");
+    await provider.getAlerts();
+    const alertLoads = fetchMock.mock.calls.filter(([url]) => new URL(url as string).pathname.endsWith("/alerts"));
+    expect(alertLoads).toHaveLength(2);
+  });
+
   it("acknowledges via POST /alerts/{id}/ack", async () => {
     await new ApiDataProvider().acknowledgeAlert("7");
     const [url, init] = fetchMock.mock.calls[0];

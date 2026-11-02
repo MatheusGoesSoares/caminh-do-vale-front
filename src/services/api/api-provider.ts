@@ -16,6 +16,7 @@ import type {
 } from "@/types";
 import { formatAlertType } from "@/utils/format";
 import { ApiError, getAllPages, getData, postData } from "./http";
+import { getSession, subscribeSession } from "./session";
 import type {
   ApiAlert,
   ApiDevice,
@@ -31,6 +32,7 @@ import type {
 
 const SHIPMENT_PREFIX = "VG-";
 const LOOKUP_TTL_MS = 60_000;
+const SHARED_TTL_MS = 10_000;
 const RANGE_MS: Partial<Record<TimeRange, number>> = {
   "1h": 3_600_000,
   "6h": 6 * 3_600_000,
@@ -119,23 +121,46 @@ function matchesSearch(s: Shipment, q: string): boolean {
 }
 
 export class ApiDataProvider implements DataService {
-  private lookups: { value: Promise<Lookups>; at: number } | null = null;
+  // Several screens ask for the same lists at once; each backend call takes seconds, so share them.
+  private cache = new Map<string, { value: Promise<unknown>; at: number }>();
+
+  private cachedFor = getSession()?.user.id ?? null;
+
+  constructor() {
+    // Clear on login/logout, not on token refresh, so one user's data never shows for another.
+    subscribeSession(() => {
+      const userId = getSession()?.user.id ?? null;
+      if (userId !== this.cachedFor) this.cache.clear();
+      this.cachedFor = userId;
+    });
+  }
+
+  private shared<T>(key: string, ttlMs: number, load: () => Promise<T>): Promise<T> {
+    const hit = this.cache.get(key);
+    if (hit && Date.now() - hit.at < ttlMs) return hit.value as Promise<T>;
+    const value = load();
+    this.cache.set(key, { value, at: Date.now() });
+    value.catch(() => {
+      if (this.cache.get(key)?.value === value) this.cache.delete(key);
+    });
+    return value;
+  }
 
   private getLookups(): Promise<Lookups> {
-    if (!this.lookups || Date.now() - this.lookups.at > LOOKUP_TTL_MS) {
-      const value = Promise.all([
+    return this.shared("lookups", LOOKUP_TTL_MS, async () => {
+      const [locations, vehicles, devices] = await Promise.all([
         getAllPages<ApiLocation>("/locations?page_size=500"),
         getAllPages<ApiVehicle>("/vehicles?page_size=500"),
         getAllPages<ApiDevice>("/devices?page_size=500"),
-      ]).then(([locations, vehicles, devices]) => ({
-        locations: byId(locations),
-        vehicles: byId(vehicles),
-        devices: byId(devices),
-      }));
-      value.catch(() => (this.lookups = null));
-      this.lookups = { value, at: Date.now() };
-    }
-    return this.lookups.value;
+      ]);
+      return { locations: byId(locations), vehicles: byId(vehicles), devices: byId(devices) };
+    });
+  }
+
+  private getAllAlerts(): Promise<MonitoringAlert[]> {
+    return this.shared("alerts", SHARED_TTL_MS, async () =>
+      (await getAllPages<ApiAlert>("/alerts?page_size=500")).map(mapAlert)
+    );
   }
 
   private mapShipment(api: ApiShipment, summary: ApiShipmentSummary, lookups: Lookups): Shipment {
@@ -179,15 +204,22 @@ export class ApiDataProvider implements DataService {
     };
   }
 
-  private async loadShipments(): Promise<Shipment[]> {
-    const [shipments, lookups] = await Promise.all([
-      getAllPages<ApiShipment>("/shipments?page_size=500"),
-      this.getLookups(),
-    ]);
-    const summaries = await Promise.all(
-      shipments.map((s) => getData<ApiShipmentSummary>(`/shipments/${s.id}/summary`))
-    );
-    return shipments.map((s, i) => this.mapShipment(s, summaries[i], lookups));
+  private loadShipments(): Promise<Shipment[]> {
+    return this.shared("shipments", SHARED_TTL_MS, async () => {
+      const [shipments, lookups] = await Promise.all([
+        getAllPages<ApiShipment>("/shipments?page_size=500"),
+        this.getLookups(),
+      ]);
+      const summaries = await Promise.all(
+        shipments.map((s) => getData<ApiShipmentSummary>(`/shipments/${s.id}/summary`))
+      );
+      return shipments.map((s, i) => this.mapShipment(s, summaries[i], lookups));
+    });
+  }
+
+  private hasFresh(key: string): boolean {
+    const hit = this.cache.get(key);
+    return !!hit && Date.now() - hit.at < SHARED_TTL_MS;
   }
 
   async getDashboardSummary(): Promise<DashboardSummary> {
@@ -228,6 +260,10 @@ export class ApiDataProvider implements DataService {
   async getShipmentById(id: string): Promise<Shipment | null> {
     const apiId = fromShipmentId(id);
     if (apiId === null) return null;
+    if (this.hasFresh("shipments")) {
+      const loaded = (await this.loadShipments()).find((s) => s.id === toShipmentId(apiId));
+      if (loaded) return loaded;
+    }
     try {
       const [shipment, summary, lookups] = await Promise.all([
         getData<ApiShipment>(`/shipments/${apiId}`),
@@ -266,20 +302,19 @@ export class ApiDataProvider implements DataService {
   }
 
   async getAlerts(filters?: AlertFilters): Promise<MonitoringAlert[]> {
-    const params = new URLSearchParams({ page_size: "500" });
-    if (filters?.severity) params.set("severity", filters.severity);
-    if (filters?.status === "resolved") params.set("status", "resolved");
-    const shipment = filters?.shipmentId ? fromShipmentId(filters.shipmentId) : null;
-    if (shipment !== null) params.set("shipment", String(shipment));
-
-    let alerts = (await getAllPages<ApiAlert>(`/alerts?${params}`)).map(mapAlert);
-    if (filters?.status === "active") alerts = alerts.filter((a) => a.status === "active");
-    if (filters?.type) alerts = alerts.filter((a) => a.type === filters.type);
-    return alerts;
+    return (await this.getAllAlerts()).filter(
+      (a) =>
+        (!filters?.severity || a.severity === filters.severity) &&
+        (!filters?.status || a.status === filters.status) &&
+        (!filters?.type || a.type === filters.type) &&
+        (!filters?.shipmentId || a.shipmentId === filters.shipmentId)
+    );
   }
 
   async acknowledgeAlert(id: string): Promise<void> {
     await postData(`/alerts/${id}/ack`);
+    this.cache.delete("alerts");
+    this.cache.delete("shipments");
   }
 
   async getFruitProfiles(): Promise<FruitStorageProfile[]> {
