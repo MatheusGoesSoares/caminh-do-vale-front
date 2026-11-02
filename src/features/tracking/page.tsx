@@ -199,7 +199,8 @@ function Legend() {
 
 export default function TrackingPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showList, setShowList] = useState(true);
+  // On small screens the list would cover most of the map.
+  const [showList, setShowList] = useState(() => window.innerWidth >= 1024);
 
   const { data: shipments, isLoading } = useShipments();
   const { data: positions } = useShipmentPositions(selectedId ?? "");

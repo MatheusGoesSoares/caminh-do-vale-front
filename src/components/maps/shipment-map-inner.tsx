@@ -55,6 +55,27 @@ function MapFlyTo({
   return null;
 }
 
+// Mobile browsers may treat a two-finger pinch on the map as page zoom; keep the gesture for the map.
+function BlockPagePinchZoom() {
+  const map = useMap();
+  useEffect(() => {
+    const el = map.getContainer();
+    const stopMultiTouch = (e: TouchEvent) => {
+      if (e.touches.length > 1) e.preventDefault();
+    };
+    const stopGesture = (e: Event) => e.preventDefault();
+    el.addEventListener("touchmove", stopMultiTouch, { passive: false });
+    el.addEventListener("gesturestart", stopGesture);
+    el.addEventListener("gesturechange", stopGesture);
+    return () => {
+      el.removeEventListener("touchmove", stopMultiTouch);
+      el.removeEventListener("gesturestart", stopGesture);
+      el.removeEventListener("gesturechange", stopGesture);
+    };
+  }, [map]);
+  return null;
+}
+
 interface ShipmentMapInnerProps {
   shipments: Shipment[];
   selectedShipmentId?: string;
@@ -95,14 +116,16 @@ export function ShipmentMapInner({
     .map((p) => [p.latitude, p.longitude]);
 
   return (
-    <div style={{ height, width: "100%" }} className="rounded-lg overflow-hidden">
+    <div style={{ height, width: "100%" }} className="isolate rounded-lg overflow-hidden">
       <MapContainer
         center={[-9.39, -40.5]}
         zoom={6}
         style={{ height: "100%", width: "100%" }}
         ref={mapRef}
         scrollWheelZoom
+        touchZoom
       >
+        <BlockPagePinchZoom />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
