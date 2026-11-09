@@ -8,6 +8,8 @@ interface TimeRangeSelectorProps {
 }
 
 const options: { value: TimeRange; label: string }[] = [
+  { value: "5m", label: "5min" },
+  { value: "30m", label: "30min" },
   { value: "1h", label: "1h" },
   { value: "6h", label: "6h" },
   { value: "24h", label: "24h" },

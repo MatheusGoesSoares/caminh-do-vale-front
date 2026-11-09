@@ -35,6 +35,8 @@ const SHIPMENT_PREFIX = "VG-";
 const LOOKUP_TTL_MS = 60_000;
 const SHARED_TTL_MS = 10_000;
 const RANGE_MS: Partial<Record<TimeRange, number>> = {
+  "5m": 5 * 60_000,
+  "30m": 30 * 60_000,
   "1h": 3_600_000,
   "6h": 6 * 3_600_000,
   "24h": 24 * 3_600_000,
@@ -344,6 +346,17 @@ export class ApiDataProvider implements DataService {
   // The backend lifecycle is one-way (planned -> active -> completed), so "start again" means a new trip.
   async repeatShipment(id: string): Promise<string> {
     const original = await getData<ApiShipment>(`/shipments/${this.apiShipmentId(id)}`);
+    const planned = await getAllPages<ApiShipment>(`/shipments?status=planned&device=${original.device}&page_size=500`);
+    const twin = planned.find(
+      (s) =>
+        s.status === "planned" &&
+        s.origin === original.origin &&
+        s.destination === original.destination &&
+        s.vehicle === original.vehicle &&
+        s.items.length > 0
+    );
+    if (twin) return toShipmentId(twin.id);
+
     const created = await postData<ApiShipment>("/shipments", {
       origin: original.origin,
       destination: original.destination,

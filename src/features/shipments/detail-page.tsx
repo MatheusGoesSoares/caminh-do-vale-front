@@ -16,6 +16,7 @@ import {
   Info,
   XCircle,
   Building2,
+  WifiOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -26,7 +27,7 @@ import {
   useResolveAlert,
 } from "@/hooks/use-data-service";
 import { useCanOperate } from "@/hooks/use-session";
-import { DeviceStatus } from "./components/device-status";
+import { DeviceStatus, boardIsSilent } from "./components/device-status";
 import { Button } from "@/components/ui";
 import type { TimeRange, MonitoringAlert } from "@/types";
 import {
@@ -418,7 +419,19 @@ export default function ShipmentDetailPage() {
         </div>
       </div>
 
-      {shipment.logisticsStatus === "in_transit" && (
+      {shipment.logisticsStatus === "in_transit" && boardIsSilent(shipment.device) && (
+        <div className="flex items-start gap-2 rounded-lg border border-[#E08A2E]/30 bg-[#FEF3E6] px-4 py-2.5 text-sm text-[#9A5B12]" role="status">
+          <WifiOff className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            {shipment.device?.lastSeenAt
+              ? `A placa ${shipment.device.uid} não manda dados desde ${formatDateTime(shipment.device.lastSeenAt)}.`
+              : `A placa ${shipment.device?.uid ?? ""} ainda não se comunicou com o servidor.`}{" "}
+            Confira se ela está ligada e conectada ao Wi-Fi; as leituras voltam a aparecer aqui sozinhas.
+          </span>
+        </div>
+      )}
+
+      {shipment.logisticsStatus === "in_transit" && !boardIsSilent(shipment.device) && (
         <div className="flex items-center gap-2 rounded-lg border border-[#BFE3C8] bg-[#E6F4EA] px-4 py-2.5 text-sm text-[#1A7A44]" role="status">
           <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1F8A4D] opacity-60 motion-reduce:animate-none" />
@@ -611,7 +624,7 @@ export default function ShipmentDetailPage() {
         {activeTab === "environment" && (
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-2">
-              {(["custom", "1h", "6h", "24h", "7d"] as TimeRange[]).map((range) => (
+              {(["custom", "5m", "30m", "1h", "6h", "24h", "7d"] as TimeRange[]).map((range) => (
                 <button
                   key={range}
                   onClick={() => setTimeRange(range)}
@@ -622,7 +635,7 @@ export default function ShipmentDetailPage() {
                       : "bg-white text-[#5B7264] border border-[#E6F4EA] hover:border-[#BFE3C8]"
                   )}
                 >
-                  {range === "custom" ? "Viagem toda" : range}
+                  {range === "custom" ? "Viagem toda" : range === "5m" ? "5min" : range === "30m" ? "30min" : range}
                 </button>
               ))}
             </div>

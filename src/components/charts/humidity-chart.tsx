@@ -29,9 +29,9 @@ interface ChartDataPoint {
   outsideLimits: boolean;
 }
 
-function formatTimeAxis(timestamp: number, _timeRange: TimeRange): string {
-  const date = new Date(timestamp);
-  return format(date, "HH:mm", { locale: ptBR });
+function formatTimeAxis(timestamp: number, timeRange: TimeRange): string {
+  const pattern = timeRange === "5m" || timeRange === "30m" ? "HH:mm:ss" : "HH:mm";
+  return format(new Date(timestamp), pattern, { locale: ptBR });
 }
 
 function CustomTooltip({

@@ -209,6 +209,19 @@ describe("ApiDataProvider", () => {
     });
   });
 
+  it("reuses an identical planned trip instead of creating a duplicate", async () => {
+    const twin = { ...shipment, id: 8, status: "planned" };
+    fetchMock.mockImplementation(async (input: string, init?: RequestInit) => {
+      const url = new URL(input);
+      if (init?.method === "POST") throw new Error("should not create");
+      if (url.pathname.endsWith("/shipments") && url.searchParams.get("status") === "planned") {
+        return new Response(JSON.stringify(page([twin])), { status: 200 });
+      }
+      return new Response(JSON.stringify(routes[url.pathname.replace("/api/v1", "")]), { status: 200 });
+    });
+    expect(await new ApiDataProvider().repeatShipment("VG-2")).toBe("VG-8");
+  });
+
   it("shows the backend message when starting a trip fails", async () => {
     fetchMock.mockImplementation(
       async () =>

@@ -26,7 +26,7 @@ export type AlertSeverity = "warning" | "critical";
 
 export type AlertStatus = "active" | "resolved";
 
-export type TimeRange = "1h" | "6h" | "24h" | "7d" | "custom";
+export type TimeRange = "5m" | "30m" | "1h" | "6h" | "24h" | "7d" | "custom";
 
 export type NotificationType = "info" | "warning" | "critical" | "success";
 
