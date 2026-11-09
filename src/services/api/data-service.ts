@@ -26,6 +26,8 @@ export interface DataService {
   resolveAlert(id: string): Promise<void>;
   startShipment(id: string): Promise<void>;
   finishShipment(id: string): Promise<void>;
+  /** Creates a new planned trip with the same route, vehicle, board and cargo; returns its id. */
+  repeatShipment(id: string): Promise<string>;
   getFruitProfiles(): Promise<FruitStorageProfile[]>;
   getNotifications(): Promise<AppNotification[]>;
 }

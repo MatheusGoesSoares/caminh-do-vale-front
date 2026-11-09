@@ -190,6 +190,25 @@ describe("ApiDataProvider", () => {
     expect(init.method).toBe("POST");
   });
 
+  it("repeats a trip as a new planned shipment with the same route, vehicle, board and cargo", async () => {
+    const posted: { path: string; body: unknown }[] = [];
+    fetchMock.mockImplementation(async (input: string, init?: RequestInit) => {
+      const path = new URL(input).pathname.replace("/api/v1", "");
+      if (init?.method === "POST") {
+        posted.push({ path, body: JSON.parse(String(init.body)) });
+        return new Response(JSON.stringify({ data: path === "/shipments" ? { ...shipment, id: 9, status: "planned" } : {} }), { status: 201 });
+      }
+      return new Response(JSON.stringify(routes[path]), { status: 200 });
+    });
+
+    expect(await new ApiDataProvider().repeatShipment("VG-2")).toBe("VG-9");
+    expect(posted[0]).toMatchObject({ path: "/shipments", body: { origin: 2, destination: 4, vehicle: 1, device: 2 } });
+    expect(posted[1]).toEqual({
+      path: "/shipment-items",
+      body: { shipment: 9, fruit: 1, lot: "MG-2810-07", quantity_kg: "4500.00" },
+    });
+  });
+
   it("shows the backend message when starting a trip fails", async () => {
     fetchMock.mockImplementation(
       async () =>

@@ -26,6 +26,7 @@ import {
   useResolveAlert,
 } from "@/hooks/use-data-service";
 import { useCanOperate } from "@/hooks/use-session";
+import { DeviceStatus } from "./components/device-status";
 import { Button } from "@/components/ui";
 import type { TimeRange, MonitoringAlert } from "@/types";
 import {
@@ -413,8 +414,21 @@ export default function ShipmentDetailPage() {
             {shipment.variety && ` · ${shipment.variety}`} — Lote{" "}
             {shipment.batchId}
           </p>
+          <DeviceStatus device={shipment.device} className="mt-2" />
         </div>
       </div>
+
+      {shipment.logisticsStatus === "in_transit" && (
+        <div className="flex items-center gap-2 rounded-lg border border-[#BFE3C8] bg-[#E6F4EA] px-4 py-2.5 text-sm text-[#1A7A44]" role="status">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1F8A4D] opacity-60 motion-reduce:animate-none" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#1F8A4D]" />
+          </span>
+          {shipment.latestReading
+            ? `Ao vivo: última leitura ${formatRelativeTime(shipment.latestReading.measuredAt)}. Atualiza a cada 10 segundos.`
+            : `Aguardando a primeira leitura da placa ${shipment.device?.uid ?? ""}. Ela aparece aqui sozinha, em até 10 segundos depois de chegar ao servidor.`}
+        </div>
+      )}
 
       {/* Info grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

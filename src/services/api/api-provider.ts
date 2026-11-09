@@ -182,6 +182,12 @@ export class ApiDataProvider implements DataService {
       vehicleId: plate,
       carrier: company && { id: company.id, name: company.name },
       sensorIds: device ? [device.uid] : [],
+      device: {
+        uid: summary.device.uid,
+        online: summary.device.online,
+        lastSeenAt: summary.device.last_seen_at ?? undefined,
+        connection: summary.device.connection ?? undefined,
+      },
       origin: lookups.locations.get(api.origin)?.name ?? `Local ${api.origin}`,
       destination: lookups.locations.get(api.destination)?.name ?? `Local ${api.destination}`,
       logisticsStatus: logisticsByStatus[api.status],
@@ -333,6 +339,28 @@ export class ApiDataProvider implements DataService {
   async finishShipment(id: string): Promise<void> {
     await postData(`/shipments/${this.apiShipmentId(id)}/finish`);
     this.invalidate();
+  }
+
+  // The backend lifecycle is one-way (planned -> active -> completed), so "start again" means a new trip.
+  async repeatShipment(id: string): Promise<string> {
+    const original = await getData<ApiShipment>(`/shipments/${this.apiShipmentId(id)}`);
+    const created = await postData<ApiShipment>("/shipments", {
+      origin: original.origin,
+      destination: original.destination,
+      vehicle: original.vehicle,
+      device: original.device,
+      started_at: new Date().toISOString(),
+    });
+    for (const item of original.items) {
+      await postData("/shipment-items", {
+        shipment: created.id,
+        fruit: item.fruit,
+        lot: item.lot,
+        quantity_kg: item.quantity_kg,
+      });
+    }
+    this.invalidate();
+    return toShipmentId(created.id);
   }
 
   private apiShipmentId(id: string): number {

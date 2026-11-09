@@ -8,6 +8,7 @@ import type {
 import type { DataService } from '@/services/api/data-service';
 
 const service = getDataService();
+const LIVE_REFRESH_MS = 10_000;
 
 export function useDataService(): DataService {
   return service;
@@ -34,6 +35,8 @@ export function useShipment(id: string) {
     queryKey: ['shipment', id],
     queryFn: () => service.getShipmentById(id),
     enabled: !!id,
+    // The backend guide suggests polling an active trip every 5-10 s (no WebSocket).
+    refetchInterval: (query) => (query.state.data?.logisticsStatus === 'in_transit' ? LIVE_REFRESH_MS : false),
   });
 }
 
@@ -51,7 +54,7 @@ export function useReadingHistory(shipmentId: string, timeRange: TimeRange) {
     queryKey: ['reading-history', shipmentId, timeRange],
     queryFn: () => service.getReadingHistory(shipmentId, timeRange),
     enabled: !!shipmentId,
-    refetchInterval: 15_000,
+    refetchInterval: LIVE_REFRESH_MS,
   });
 }
 
@@ -104,6 +107,16 @@ export function useStartShipment() {
 
 export function useFinishShipment() {
   return useServiceAction((id) => service.finishShipment(id));
+}
+
+export function useRepeatShipment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => service.repeatShipment(id),
+    onSuccess: () => {
+      for (const key of AFFECTED_BY_ACTIONS) queryClient.invalidateQueries({ queryKey: [key] });
+    },
+  });
 }
 
 export function useFruitProfiles() {

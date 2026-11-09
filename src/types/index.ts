@@ -66,6 +66,7 @@ export interface Shipment {
   vehicleId?: string;
   carrier?: { id: string; name: string };
   sensorIds: string[];
+  device?: { uid: string; online: boolean; lastSeenAt?: string; connection?: "wifi" | "2g" };
   origin: string;
   destination: string;
   logisticsStatus: LogisticsStatus;
