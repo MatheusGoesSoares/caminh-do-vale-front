@@ -59,27 +59,17 @@ A aplicação estará disponível em `http://localhost:5173`.
 | `npm run test` | Executa os testes uma vez |
 | `npm run test:watch` | Executa os testes em modo watch |
 
-## Modo Demonstração
+## Dados
 
-A aplicação inicia por padrão em **modo demonstração** com dados simulados realistas. Um indicador "Modo demonstração" é exibido na barra superior da interface.
-
-Os cenários simulados incluem:
-
-| Carga | Fruta | Cenário |
-|---|---|---|
-| CV-1001 | Uva de mesa | Transporte em condições normais |
-| CV-1002 | Manga Tommy Atkins | Temperatura elevada (crítico) |
-| CV-1003 | Goiaba | Umidade abaixo do limite (atenção) |
-| CV-1004 | Banana | Sensor sem comunicação recente |
-| CV-1005 | Melão honeydew | Entrega concluída |
-| CV-1006 | Mamão | Aguardando carregamento |
-
-Para conectar com uma API real, configure as variáveis de ambiente:
+Todos os dados vêm da API do back (PI Frutas). Não há modo demonstração: é preciso entrar com uma conta do back.
 
 ```env
-VITE_DATA_PROVIDER=api
-VITE_API_BASE_URL=https://sua-api.com
+VITE_API_BASE_URL=https://projeto-integrador-time1.onrender.com/api/v1
 ```
+
+No site publicado na Vercel, o front chama `/api/v1` e o `vercel.json` repassa as chamadas ao back.
+
+O único dado fictício são as transportadoras em `src/config/companies.ts`: o back ainda não tem cadastro de empresas, então cada veículo é ligado a uma delas pela placa.
 
 ## Estrutura do Projeto
 
@@ -102,12 +92,13 @@ src/
     alerts/               # Central de alertas
     reports/              # Histórico e relatórios
     settings/             # Configurações
+    trips/                # Iniciar e finalizar viagens (operador)
+    companies/            # Empresas que prestam os serviços
   services/
-    api/                  # Interface DataService e stub da API
-    mock/                 # Mock provider com dados simulados
+    api/                  # Interface DataService e cliente da API do back
   hooks/                  # Hooks React (TanStack Query, responsividade)
   types/                  # Interfaces TypeScript e schemas Zod
-  config/                 # Perfis de frutas
+  config/                 # Empresas fictícias (transportadoras)
   utils/                  # Regras de monitoramento, formatação
   styles/                 # CSS global e tokens Tailwind
 public/
@@ -119,20 +110,11 @@ public/
 
 Consulte [API_INTEGRATION.md](./API_INTEGRATION.md) para detalhes sobre os contratos de dados esperados e as informações que precisam ser confirmadas com a equipe de backend.
 
-A arquitetura utiliza um padrão de abstração (`DataService`) que permite trocar o provider de dados (mock → API) sem alterar nenhum componente visual.
+A arquitetura utiliza um padrão de abstração (`DataService`): os componentes visuais não chamam a API diretamente.
 
 ## Perfis de Frutas
 
-O catálogo inicial inclui perfis de conservação pós-colheita para:
-
-- Uva de mesa
-- Manga (verde-madura e parcialmente madura)
-- Goiaba (verde-madura e madura)
-- Banana
-- Mamão (3 estágios de maturação)
-- Melão honeydew e cantaloupe
-
-Os valores são referências científicas do UC Davis Postharvest Technology Center e não devem ser interpretados como limites operacionais definitivos para todos os cultivares.
+As faixas de temperatura e umidade de cada fruta vêm do back (`/fruits` e `/fruit-parameters`) e aparecem em Configurações.
 
 ## Licença
 

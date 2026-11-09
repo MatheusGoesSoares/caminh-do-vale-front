@@ -6,7 +6,7 @@ import { ptBR } from "date-fns/locale/pt-BR";
 import {
   Search,
   Bell,
-  Info,
+  CheckCheck,
   User,
   X,
   AlertTriangle,
@@ -15,17 +15,18 @@ import {
   InfoIcon,
 } from "lucide-react";
 import { StatusIndicator } from "@/components/ui/status-indicator";
+import { InstallAppButton } from "./install-app-button";
 import type { AppNotification } from "@/types";
 import { logout, useSession } from "@/hooks/use-session";
 import type { UserRole } from "@/services/api/session";
 
 interface HeaderProps {
   title: string;
-  isDemoMode?: boolean;
   connectionStatus?: "connected" | "disconnected" | "syncing";
   lastSyncAt?: Date | null;
   notifications?: AppNotification[];
   onNotificationRead?: (id: string) => void;
+  onMarkAllRead?: () => void;
 }
 
 const notificationIcon: Record<string, typeof AlertTriangle> = {
@@ -50,16 +51,16 @@ const notificationColor: Record<string, string> = {
 
 export function Header({
   title,
-  isDemoMode = false,
   connectionStatus = "connected",
   lastSyncAt = null,
   notifications = [],
   onNotificationRead,
+  onMarkAllRead,
 }: HeaderProps) {
   const navigate = useNavigate();
   const session = useSession();
-  const userName = session?.user.name ?? "Operador";
-  const userEmail = session?.user.email ?? "operador@demo.com";
+  const userName = session?.user.name ?? "";
+  const userEmail = session?.user.email ?? "";
   const userRole = session?.user.role ? roleLabels[session.user.role] : null;
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,16 +86,6 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-[#E6F4EA]">
-      {/* Demo mode banner */}
-      {isDemoMode && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-1.5 flex items-center justify-center gap-2">
-          <Info className="h-3.5 w-3.5 text-[#E08A2E]" />
-          <span className="text-xs font-medium text-amber-800">
-            Modo demonstração — dados simulados
-          </span>
-        </div>
-      )}
-
       <div className="flex items-center justify-between h-14 px-4 sm:px-6">
         {/* Left: Title */}
         <div className="flex items-center gap-3 min-w-0">
@@ -118,6 +109,8 @@ export function Header({
               </span>
             )}
           </div>
+
+          <InstallAppButton />
 
           {/* Search */}
           <div className="relative">
@@ -196,9 +189,13 @@ export function Header({
                     Notificações
                   </h3>
                   {unreadCount > 0 && (
-                    <span className="text-xs text-[#5B7264]">
-                      {unreadCount} não lida{unreadCount > 1 ? "s" : ""}
-                    </span>
+                    <button
+                      onClick={onMarkAllRead}
+                      className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-[#1A7A44] hover:bg-[#E6F4EA]"
+                    >
+                      <CheckCheck className="h-3.5 w-3.5" />
+                      Marcar todas como lidas ({unreadCount})
+                    </button>
                   )}
                 </div>
                 <div className="max-h-80 overflow-y-auto">
@@ -217,7 +214,11 @@ export function Header({
                             "w-full text-left px-4 py-3 border-b border-[#F4FAF5] last:border-b-0 hover:bg-[#F4FAF5] transition-colors flex gap-3",
                             !notif.read && "bg-[#E6F4EA]/30"
                           )}
-                          onClick={() => onNotificationRead?.(notif.id)}
+                          onClick={() => {
+                            onNotificationRead?.(notif.id);
+                            setNotifOpen(false);
+                            navigate(notif.shipmentId ? `/cargas/${notif.shipmentId}` : "/alertas");
+                          }}
                         >
                           <Icon className={cn("h-4 w-4 mt-0.5 shrink-0", color)} />
                           <div className="min-w-0">

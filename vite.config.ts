@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'Caminho do Vale',
         short_name: 'Caminho do Vale',
         description: 'Monitoramento de transporte de frutas do Vale do São Francisco',
-        theme_color: '#164D38',
-        background_color: '#F3F7F1',
+        theme_color: '#1A7A44',
+        background_color: '#F4FAF5',
         display: 'standalone',
         lang: 'pt-BR',
         start_url: '/',
@@ -42,6 +42,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // API calls go through /api on the same origin (vercel.json); never serve them from the app shell or a cache.
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -67,15 +69,6 @@ export default defineConfig({
             options: {
               cacheName: 'images-cache',
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-          {
-            urlPattern: /\/api\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 5 },
-              networkTimeoutSeconds: 10,
             },
           },
           {

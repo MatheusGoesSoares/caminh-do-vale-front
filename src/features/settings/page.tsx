@@ -12,7 +12,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Skeleton, EmptyState, Tabs, TabPanel } from "@/components/ui";
 import { useFruitProfiles } from "@/hooks/use-data-service";
-import { isDemoMode } from "@/services";
 import { API_BASE_URL } from "@/services/api/http";
 
 function Toggle({
@@ -69,7 +68,7 @@ function SourceLink({ source }: { source: string }) {
       rel="noopener noreferrer"
       className="inline-flex items-center gap-1 text-xs text-[#427DA5] hover:underline"
     >
-      {new URL(source).hostname.includes("ucdavis") ? "UC Davis" : "Ver fonte"}
+      Ver fonte
       <ExternalLink className="h-3 w-3" />
     </a>
   );
@@ -299,17 +298,6 @@ function SystemTab() {
               <p className="text-sm font-semibold text-[#123A24]">30 segundos</p>
             </div>
             <div className="rounded-lg bg-[#F4FAF5] p-4">
-              <p className="text-xs text-[#5B7264] mb-1">Modo de dados</p>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-[#123A24]">
-                  {isDemoMode() ? "Demonstração (Mock)" : "API"}
-                </p>
-                {isDemoMode() && (
-                  <Badge variant="warning">Demo</Badge>
-                )}
-              </div>
-            </div>
-            <div className="rounded-lg bg-[#F4FAF5] p-4">
               <p className="text-xs text-[#5B7264] mb-1">Versão do aplicativo</p>
               <p className="text-sm font-semibold text-[#123A24]">0.1.0</p>
             </div>
@@ -324,16 +312,7 @@ function SystemTab() {
           <div className="flex items-start gap-2 rounded-lg bg-[#427DA5]/10 p-3">
             <Info className="h-4 w-4 text-[#427DA5] shrink-0 mt-0.5" />
             <p className="text-xs text-[#427DA5]">
-              {isDemoMode() ? (
-                <>
-                  Os dados são simulados. Para usar o back real, defina{" "}
-                  <code className="font-mono bg-[#427DA5]/10 px-1 rounded">VITE_DATA_PROVIDER=api</code>.
-                </>
-              ) : (
-                <>
-                  Conectado a <code className="font-mono bg-[#427DA5]/10 px-1 rounded">{API_BASE_URL}</code>.
-                </>
-              )}
+              Conectado a <code className="font-mono bg-[#427DA5]/10 px-1 rounded">{API_BASE_URL}</code>.
             </p>
           </div>
         </CardContent>

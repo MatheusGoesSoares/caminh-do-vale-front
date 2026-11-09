@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AppLayout } from '@/components/layout';
-import { isDemoMode } from '@/services';
 import { useSession } from '@/hooks/use-session';
 
 const Login = lazy(() => import('@/features/auth/login-page'));
@@ -9,7 +8,7 @@ const Login = lazy(() => import('@/features/auth/login-page'));
 function RequireAuth() {
   const session = useSession();
   const location = useLocation();
-  if (isDemoMode() || session) return <Outlet />;
+  if (session) return <Outlet />;
   return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
 }
 
@@ -21,6 +20,8 @@ const Tracking = lazy(() => import('@/features/tracking/page'));
 const Alerts = lazy(() => import('@/features/alerts/page'));
 const Reports = lazy(() => import('@/features/reports/page'));
 const Settings = lazy(() => import('@/features/settings/page'));
+const Companies = lazy(() => import('@/features/companies/page'));
+const Trips = lazy(() => import('@/features/trips/page'));
 
 function PageLoader() {
   return (
@@ -57,7 +58,7 @@ export function AppRouter() {
     <Routes>
       <Route
         path="login"
-        element={isDemoMode() ? <Navigate to="/" replace /> : <Suspense fallback={null}><Login /></Suspense>}
+        element={<Suspense fallback={null}><Login /></Suspense>}
       />
       <Route element={<RequireAuth />}>
       <Route element={<AppLayout />}>
@@ -114,6 +115,22 @@ export function AppRouter() {
           element={
             <Suspense fallback={<PageLoader />}>
               <Reports />
+            </Suspense>
+          }
+        />
+        <Route
+          path="viagens"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Trips />
+            </Suspense>
+          }
+        />
+        <Route
+          path="empresas"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Companies />
             </Suspense>
           }
         />

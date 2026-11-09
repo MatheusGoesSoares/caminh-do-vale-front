@@ -17,6 +17,7 @@ import type {
 import { formatAlertType } from "@/utils/format";
 import { ApiError, getAllPages, getData, postData } from "./http";
 import { getSession, subscribeSession } from "./session";
+import { companyForPlate } from "@/config/companies";
 import type {
   ApiAlert,
   ApiDevice,
@@ -116,7 +117,7 @@ function mapReading(reading: ApiReading, devices: Map<number, ApiDevice>): Senso
 }
 
 function matchesSearch(s: Shipment, q: string): boolean {
-  return [s.id, s.batchId, s.fruitName, s.origin, s.destination, s.vehicleId ?? "", ...s.sensorIds]
+  return [s.id, s.batchId, s.fruitName, s.origin, s.destination, s.vehicleId ?? "", s.carrier?.name ?? "", ...s.sensorIds]
     .some((field) => field.toLowerCase().includes(q));
 }
 
@@ -169,6 +170,8 @@ export class ApiDataProvider implements DataService {
     const device = lookups.devices.get(api.device);
     const id = toShipmentId(api.id);
     const quantity = api.items.reduce((sum, i) => sum + (num(i.quantity_kg) ?? 0), 0);
+    const plate = lookups.vehicles.get(api.vehicle)?.plate;
+    const company = companyForPlate(plate);
 
     return {
       id,
@@ -176,7 +179,8 @@ export class ApiDataProvider implements DataService {
       fruitProfileId: api.items.map((i) => i.fruit).join(","),
       fruitName: api.items.map((i) => i.fruit_name).join(" + ") || "Sem carga",
       quantityKg: quantity || undefined,
-      vehicleId: lookups.vehicles.get(api.vehicle)?.plate,
+      vehicleId: plate,
+      carrier: company && { id: company.id, name: company.name },
       sensorIds: device ? [device.uid] : [],
       origin: lookups.locations.get(api.origin)?.name ?? `Local ${api.origin}`,
       destination: lookups.locations.get(api.destination)?.name ?? `Local ${api.destination}`,
@@ -313,6 +317,31 @@ export class ApiDataProvider implements DataService {
 
   async acknowledgeAlert(id: string): Promise<void> {
     await postData(`/alerts/${id}/ack`);
+    this.invalidate();
+  }
+
+  async resolveAlert(id: string): Promise<void> {
+    await postData(`/alerts/${id}/resolve`);
+    this.invalidate();
+  }
+
+  async startShipment(id: string): Promise<void> {
+    await postData(`/shipments/${this.apiShipmentId(id)}/start`);
+    this.invalidate();
+  }
+
+  async finishShipment(id: string): Promise<void> {
+    await postData(`/shipments/${this.apiShipmentId(id)}/finish`);
+    this.invalidate();
+  }
+
+  private apiShipmentId(id: string): number {
+    const apiId = fromShipmentId(id);
+    if (apiId === null) throw new ApiError(`Carga ${id} inválida.`, 400);
+    return apiId;
+  }
+
+  private invalidate(): void {
     this.cache.delete("alerts");
     this.cache.delete("shipments");
   }

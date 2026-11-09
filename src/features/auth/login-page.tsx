@@ -4,6 +4,7 @@ import { Loader2, LogIn } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { login, useSession } from "@/hooks/use-session";
 import { API_BASE_URL } from "@/services/api/http";
+import { InstallAppButton } from "@/components/layout/install-app-button";
 import logo from "@/assets/brand/logo-horizontal-yellow-v.png";
 
 type ServerState = "waking" | "ready" | "unreachable";
@@ -130,6 +131,10 @@ export default function LoginPage() {
             {server === "unreachable" && <span className="h-2 w-2 shrink-0 rounded-full bg-[#D94F4F]" />}
             {serverLabel[server]}
           </p>
+
+          <div className="mt-4 border-t border-[#E6F4EA] pt-4 text-center empty:hidden">
+            <InstallAppButton variant="inline" />
+          </div>
         </div>
 
         <p className="mt-6 text-center text-xs uppercase tracking-wider text-[#BFE3C8]/60">

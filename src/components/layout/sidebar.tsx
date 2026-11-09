@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useCanOperate } from "@/hooks/use-session";
 import {
   LayoutDashboard,
   Activity,
@@ -9,6 +10,8 @@ import {
   Bell,
   FileText,
   Settings,
+  Building2,
+  Route,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -25,13 +28,16 @@ const navItems = [
   { icon: LayoutDashboard, label: "Visão Geral", path: "/" },
   { icon: Activity, label: "Monitoramento", path: "/monitoramento" },
   { icon: Package, label: "Cargas e Lotes", path: "/cargas" },
+  { icon: Route, label: "Viagens", path: "/viagens", operatorOnly: true },
   { icon: MapPin, label: "Mapa de Transportes", path: "/mapa" },
   { icon: Bell, label: "Alertas", path: "/alertas", badge: true },
   { icon: FileText, label: "Histórico e Relatórios", path: "/relatorios" },
+  { icon: Building2, label: "Empresas", path: "/empresas" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
 export function Sidebar({ collapsed, onToggle, alertCount = 0 }: SidebarProps) {
+  const canOperate = useCanOperate();
   const location = useLocation();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
@@ -83,7 +89,7 @@ export function Sidebar({ collapsed, onToggle, alertCount = 0 }: SidebarProps) {
       {/* Navigation */}
       <nav className="relative flex-1 py-3 px-2 overflow-y-auto" role="navigation" aria-label="Menu principal">
         <ul className="space-y-0.5">
-          {navItems.map((item) => {
+          {navItems.filter((item) => canOperate || !("operatorOnly" in item)).map((item) => {
             const active = isActive(item.path);
             const Icon = item.icon;
 

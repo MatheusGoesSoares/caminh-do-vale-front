@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Download,
   AlertTriangle,
   Truck,
   Clock,
   CheckCircle,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Select, Skeleton, EmptyState, MetricCard } from "@/components/ui";
 import { useShipments, useAlerts } from "@/hooks/use-data-service";
@@ -114,6 +116,7 @@ function LoadingSkeleton() {
 }
 
 export default function ReportsPage() {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState<Period>("week");
 
   const { data: allShipments, isLoading: shipmentsLoading } = useShipments();
@@ -273,7 +276,11 @@ export default function ReportsPage() {
                           <td className="py-2.5 px-3 text-[#123A24] whitespace-nowrap">
                             {formatDateTime(alert.startedAt)}
                           </td>
-                          <td className="py-2.5 px-3 font-medium text-[#123A24]">{alert.shipmentId}</td>
+                          <td className="py-2.5 px-3 font-medium">
+                            <Link to={`/cargas/${alert.shipmentId}`} className="text-[#1A7A44] hover:underline">
+                              {alert.shipmentId}
+                            </Link>
+                          </td>
                           <td className="py-2.5 px-3 text-[#5B7264]">{formatAlertType(alert.type)}</td>
                           <td className="py-2.5 px-3">
                             <Badge variant={alert.severity === "critical" ? "critical" : "warning"}>
@@ -334,14 +341,39 @@ export default function ReportsPage() {
                     </thead>
                     <tbody>
                       {filteredShipments.map((shipment) => (
-                        <tr key={shipment.id} className="border-b border-[#F4FAF5] hover:bg-[#F4FAF5]/50">
+                        <tr
+                          key={shipment.id}
+                          onClick={() => navigate(`/cargas/${shipment.id}`)}
+                          className="cursor-pointer border-b border-[#F4FAF5] hover:bg-[#E6F4EA]/60"
+                        >
                           <td className="py-2.5 px-3 text-[#123A24] whitespace-nowrap">
                             {formatDateTime(shipment.createdAt)}
                           </td>
-                          <td className="py-2.5 px-3 font-medium text-[#123A24]">{shipment.id}</td>
-                          <td className="py-2.5 px-3 text-[#5B7264]">{shipment.fruitName}</td>
-                          <td className="py-2.5 px-3 text-[#5B7264] hidden md:table-cell">
-                            {shipment.origin} → {shipment.destination}
+                          <td className="py-2.5 px-3 font-medium">
+                            <Link
+                              to={`/cargas/${shipment.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-[#1A7A44] hover:underline"
+                            >
+                              {shipment.id}
+                            </Link>
+                          </td>
+                          <td className="py-2.5 px-3 text-[#5B7264]">
+                            {shipment.fruitName}
+                            <span className="block text-xs md:hidden">
+                              {shipment.origin} → {shipment.destination}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 hidden md:table-cell">
+                            <Link
+                              to={`/cargas/${shipment.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-[#1A7A44] hover:underline"
+                              title="Abrir todos os dados desta viagem"
+                            >
+                              {shipment.origin} → {shipment.destination}
+                              <ChevronRight className="h-3.5 w-3.5" />
+                            </Link>
                           </td>
                           <td className="py-2.5 px-3">
                             <Badge variant={getLogisticsBadgeVariant(shipment.logisticsStatus) as "success" | "warning" | "critical" | "info" | "neutral" | "muted"}>

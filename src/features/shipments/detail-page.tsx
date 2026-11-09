@@ -15,6 +15,7 @@ import {
   Clock,
   Info,
   XCircle,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -22,7 +23,10 @@ import {
   useReadingHistory,
   useShipmentPositions,
   useAlerts,
+  useResolveAlert,
 } from "@/hooks/use-data-service";
+import { useCanOperate } from "@/hooks/use-session";
+import { Button } from "@/components/ui";
 import type { TimeRange, MonitoringAlert } from "@/types";
 import {
   formatLogisticsStatus,
@@ -117,6 +121,8 @@ function InfoItem({
 function AlertRow({ alert }: { alert: MonitoringAlert }) {
   const isActive = alert.status === "active";
   const isCritical = alert.severity === "critical";
+  const canOperate = useCanOperate();
+  const resolve = useResolveAlert();
 
   return (
     <div
@@ -176,6 +182,22 @@ function AlertRow({ alert }: { alert: MonitoringAlert }) {
             </span>
           )}
         </div>
+        {isActive && canOperate && (
+          <Button
+            size="sm"
+            className="mt-3"
+            onClick={() => resolve.mutate(alert.id)}
+            disabled={resolve.isPending}
+          >
+            <CheckCircle className="h-3.5 w-3.5" />
+            Marcar como resolvido
+          </Button>
+        )}
+        {resolve.error && (
+          <p className="mt-2 text-xs text-[#B03A3A]" role="alert">
+            {resolve.error.message}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -237,7 +259,8 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
 export default function ShipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-  const [timeRange, setTimeRange] = useState<TimeRange>("24h");
+  // "custom" = every reading of the trip, so finished trips opened from the history show their data.
+  const [timeRange, setTimeRange] = useState<TimeRange>("custom");
 
   const { data: shipment, isLoading: shipmentLoading } = useShipment(id ?? "");
   const { data: readings, isLoading: readingsLoading } = useReadingHistory(
@@ -433,6 +456,11 @@ export default function ShipmentDetailPage() {
           value={shipment.vehicleId ?? "—"}
         />
         <InfoItem
+          icon={Building2}
+          label="Transportadora"
+          value={shipment.carrier?.name ?? "—"}
+        />
+        <InfoItem
           icon={Cpu}
           label="Sensor(es)"
           value={shipment.sensorIds.join(", ") || "—"}
@@ -569,7 +597,7 @@ export default function ShipmentDetailPage() {
         {activeTab === "environment" && (
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-2">
-              {(["1h", "6h", "24h", "7d"] as TimeRange[]).map((range) => (
+              {(["custom", "1h", "6h", "24h", "7d"] as TimeRange[]).map((range) => (
                 <button
                   key={range}
                   onClick={() => setTimeRange(range)}
@@ -580,7 +608,7 @@ export default function ShipmentDetailPage() {
                       : "bg-white text-[#5B7264] border border-[#E6F4EA] hover:border-[#BFE3C8]"
                   )}
                 >
-                  {range}
+                  {range === "custom" ? "Viagem toda" : range}
                 </button>
               ))}
             </div>

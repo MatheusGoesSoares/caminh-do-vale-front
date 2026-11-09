@@ -71,16 +71,39 @@ export function useAlerts(filters?: AlertFilters) {
   });
 }
 
-export function useAcknowledgeAlert() {
+const AFFECTED_BY_ACTIONS = [
+  'alerts',
+  'notifications',
+  'dashboard-summary',
+  'shipments',
+  'shipment',
+  'latest-reading',
+];
+
+function useServiceAction(action: (id: string) => Promise<void>) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => service.acknowledgeAlert(id),
+    mutationFn: action,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      for (const key of AFFECTED_BY_ACTIONS) queryClient.invalidateQueries({ queryKey: [key] });
     },
   });
+}
+
+export function useAcknowledgeAlert() {
+  return useServiceAction((id) => service.acknowledgeAlert(id));
+}
+
+export function useResolveAlert() {
+  return useServiceAction((id) => service.resolveAlert(id));
+}
+
+export function useStartShipment() {
+  return useServiceAction((id) => service.startShipment(id));
+}
+
+export function useFinishShipment() {
+  return useServiceAction((id) => service.finishShipment(id));
 }
 
 export function useFruitProfiles() {

@@ -130,8 +130,11 @@ function MonitoringCard({ shipment }: { shipment: Shipment }) {
 
       {shipment.vehicleId && (
         <div className="flex items-center gap-1.5 text-xs text-[#5B7264] mb-3">
-          <Truck className="h-3.5 w-3.5" />
-          <span>{shipment.vehicleId}</span>
+          <Truck className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">
+            {shipment.vehicleId}
+            {shipment.carrier && ` · ${shipment.carrier.name}`}
+          </span>
         </div>
       )}
 

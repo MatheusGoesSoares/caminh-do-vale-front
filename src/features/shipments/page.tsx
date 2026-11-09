@@ -2,20 +2,9 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, LayoutGrid, List, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useShipments } from "@/hooks/use-data-service";
+import { useFruitProfiles, useShipments } from "@/hooks/use-data-service";
 import type { ShipmentFilters, LogisticsStatus, EnvironmentalStatus } from "@/types";
 import { ShipmentCard } from "./components/shipment-card";
-
-const fruitOptions = [
-  "Todas",
-  "Uva de mesa",
-  "Manga",
-  "Goiaba",
-  "Banana",
-  "Mamão",
-  "Melão honeydew",
-  "Melão cantaloupe",
-];
 
 const logisticsOptions: Array<{ value: LogisticsStatus | ""; label: string }> = [
   { value: "", label: "Todos os status" },
@@ -93,6 +82,8 @@ export default function ShipmentsPage() {
   }, [search, fruitFilter, logisticsFilter, environmentalFilter]);
 
   const { data: shipments, isLoading } = useShipments(filters);
+  const { data: fruitProfiles } = useFruitProfiles();
+  const fruitOptions = ["Todas", ...new Set((fruitProfiles ?? []).map((p) => p.fruit))];
 
   const count = shipments?.length ?? 0;
 

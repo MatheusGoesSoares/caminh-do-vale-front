@@ -64,6 +64,7 @@ export interface Shipment {
   maturityStage?: string;
   quantityKg?: number;
   vehicleId?: string;
+  carrier?: { id: string; name: string };
   sensorIds: string[];
   origin: string;
   destination: string;

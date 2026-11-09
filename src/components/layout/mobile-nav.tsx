@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useCanOperate } from "@/hooks/use-session";
 import {
   LayoutDashboard,
   Activity,
@@ -11,6 +12,8 @@ import {
   Package,
   FileText,
   Settings,
+  Building2,
+  Route,
 } from "lucide-react";
 
 interface MobileNavProps {
@@ -28,13 +31,16 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Visão Geral", path: "/" },
   { icon: Activity, label: "Monitoramento", path: "/monitoramento" },
   { icon: Package, label: "Cargas e Lotes", path: "/cargas" },
+  { icon: Route, label: "Viagens", path: "/viagens", operatorOnly: true },
   { icon: MapPin, label: "Mapa de Transportes", path: "/mapa" },
   { icon: Bell, label: "Alertas", path: "/alertas" },
   { icon: FileText, label: "Histórico e Relatórios", path: "/relatorios" },
+  { icon: Building2, label: "Empresas", path: "/empresas" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
 export function MobileNav({ alertCount = 0 }: MobileNavProps) {
+  const canOperate = useCanOperate();
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -80,7 +86,7 @@ export function MobileNav({ alertCount = 0 }: MobileNavProps) {
 
           {/* Menu items */}
           <nav className="py-2 px-3">
-            {menuItems.map((item) => {
+            {menuItems.filter((item) => canOperate || !("operatorOnly" in item)).map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
               return (

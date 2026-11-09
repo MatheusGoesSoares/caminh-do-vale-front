@@ -23,8 +23,9 @@ export interface DataService {
   getShipmentPositions(shipmentId: string): Promise<GeoPosition[]>;
   getAlerts(filters?: AlertFilters): Promise<MonitoringAlert[]>;
   acknowledgeAlert(id: string): Promise<void>;
+  resolveAlert(id: string): Promise<void>;
+  startShipment(id: string): Promise<void>;
+  finishShipment(id: string): Promise<void>;
   getFruitProfiles(): Promise<FruitStorageProfile[]>;
   getNotifications(): Promise<AppNotification[]>;
 }
-
-export type DataProviderType = "mock" | "api";

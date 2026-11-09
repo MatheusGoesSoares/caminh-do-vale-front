@@ -183,9 +183,12 @@ export function ShipmentCard({ shipment, compact }: ShipmentCardProps) {
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-[#E6F4EA] pt-3 text-xs text-[#5B7264]">
-        <div className="flex items-center gap-1">
-          <Truck className="h-3.5 w-3.5" />
-          <span>{shipment.vehicleId ?? "—"}</span>
+        <div className="flex min-w-0 items-center gap-1">
+          <Truck className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">
+            {shipment.vehicleId ?? "—"}
+            {shipment.carrier && ` · ${shipment.carrier.name}`}
+          </span>
         </div>
         {lastUpdate && (
           <div className="flex items-center gap-1">

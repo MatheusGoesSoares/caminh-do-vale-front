@@ -5,15 +5,18 @@ import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { MobileNav } from "./mobile-nav";
 import { useAlerts, useNotifications } from "@/hooks/use-data-service";
-import { isDemoMode } from "@/services";
+import { useReadNotifications } from "@/hooks/use-read-notifications";
+import type { AppNotification } from "@/types";
 
 const pageTitles: Record<string, string> = {
   "/": "Visão Geral",
   "/monitoramento": "Monitoramento",
   "/cargas": "Cargas e Lotes",
+  "/viagens": "Viagens",
   "/mapa": "Mapa de Transportes",
   "/alertas": "Alertas",
   "/relatorios": "Histórico e Relatórios",
+  "/empresas": "Empresas",
   "/configuracoes": "Configurações",
 };
 
@@ -25,6 +28,8 @@ function getPageTitle(pathname: string): string {
   }
   return "Caminho do Vale";
 }
+
+const NO_NOTIFICATIONS: AppNotification[] = [];
 
 export function AppLayout() {
   const location = useLocation();
@@ -38,6 +43,7 @@ export function AppLayout() {
       ? "syncing"
       : "connected";
   const { data: notifications } = useNotifications();
+  const readState = useReadNotifications(notifications ?? NO_NOTIFICATIONS);
   const alertCount = alerts?.length ?? 0;
 
   useEffect(() => {
@@ -86,10 +92,11 @@ export function AppLayout() {
       >
         <Header
           title={title}
-          isDemoMode={isDemoMode()}
           connectionStatus={connectionStatus}
           lastSyncAt={lastSyncAt}
-          notifications={notifications ?? []}
+          notifications={readState.notifications}
+          onNotificationRead={readState.markRead}
+          onMarkAllRead={readState.markAllRead}
         />
 
         <main

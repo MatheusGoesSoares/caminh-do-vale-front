@@ -173,6 +173,36 @@ describe("ApiDataProvider", () => {
     expect(alertLoads).toHaveLength(2);
   });
 
+  it("assigns the fictitious carrier from the vehicle plate", async () => {
+    const [s] = await new ApiDataProvider().getShipments();
+    expect(s.carrier).toEqual({ id: "transvale", name: "TransVale Frios Logística" });
+  });
+
+  it.each([
+    ["resolveAlert", "7", "/alerts/7/resolve"],
+    ["startShipment", "VG-3", "/shipments/3/start"],
+    ["finishShipment", "VG-2", "/shipments/2/finish"],
+  ] as const)("%s posts to %s", async (method, id, path) => {
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify({ data: {} }), { status: 200 }));
+    await new ApiDataProvider()[method](id);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(`${BASE}${path}`);
+    expect(init.method).toBe("POST");
+  });
+
+  it("shows the backend message when starting a trip fails", async () => {
+    fetchMock.mockImplementation(
+      async () =>
+        new Response(JSON.stringify({ detail: "Este dispositivo já está em outra viagem em andamento." }), { status: 400 })
+    );
+    await expect(new ApiDataProvider().startShipment("VG-3")).rejects.toThrow("outra viagem em andamento");
+  });
+
+  it("loads every reading of the trip for the 'custom' range", async () => {
+    await new ApiDataProvider().getReadingHistory("VG-2", "custom");
+    expect(fetchMock.mock.calls[0][0]).not.toContain("start=");
+  });
+
   it("acknowledges via POST /alerts/{id}/ack", async () => {
     await new ApiDataProvider().acknowledgeAlert("7");
     const [url, init] = fetchMock.mock.calls[0];

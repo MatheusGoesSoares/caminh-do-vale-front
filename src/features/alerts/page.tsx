@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, Badge, Button, Input, Select, Skeleton, EmptyState, Tabs } from "@/components/ui";
-import { useAlerts, useAcknowledgeAlert, useShipments } from "@/hooks/use-data-service";
+import { useAlerts, useAcknowledgeAlert, useResolveAlert, useShipments } from "@/hooks/use-data-service";
+import { useCanOperate } from "@/hooks/use-session";
 import { formatAlertType, formatRelativeTime, formatDateTime } from "@/utils/format";
 import type { MonitoringAlert, AlertType } from "@/types";
 
@@ -52,12 +53,18 @@ function AlertCard({
   alert,
   shipmentName,
   onAcknowledge,
-  isAcknowledging,
+  onResolve,
+  isBusy,
+  canOperate,
+  actionError,
 }: {
   alert: MonitoringAlert;
   shipmentName?: string;
   onAcknowledge: (id: string) => void;
-  isAcknowledging: boolean;
+  onResolve: (id: string) => void;
+  isBusy: boolean;
+  canOperate: boolean;
+  actionError?: string;
 }) {
   const Icon = getAlertIcon(alert.type);
   const isCritical = alert.severity === "critical";
@@ -122,17 +129,25 @@ function AlertCard({
             </p>
           )}
 
-          {isActive && !alert.acknowledgedAt && (
-            <Button
-              variant="secondary"
-              size="sm"
-              className="mt-3"
-              onClick={() => onAcknowledge(alert.id)}
-              disabled={isAcknowledging}
-            >
-              <Shield className="h-3.5 w-3.5" />
-              Reconhecer
-            </Button>
+          {isActive && canOperate && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {!alert.acknowledgedAt && (
+                <Button variant="secondary" size="sm" onClick={() => onAcknowledge(alert.id)} disabled={isBusy}>
+                  <Shield className="h-3.5 w-3.5" />
+                  Reconhecer
+                </Button>
+              )}
+              <Button size="sm" onClick={() => onResolve(alert.id)} disabled={isBusy}>
+                <CheckCircle className="h-3.5 w-3.5" />
+                Marcar como resolvido
+              </Button>
+            </div>
+          )}
+
+          {actionError && (
+            <p className="mt-2 text-xs text-[#B03A3A]" role="alert">
+              {actionError}
+            </p>
           )}
         </div>
       </div>
@@ -201,6 +216,16 @@ export default function AlertsPage() {
   const { data: alerts, isLoading: alertsLoading } = useAlerts();
   const { data: shipments } = useShipments();
   const acknowledgeMutation = useAcknowledgeAlert();
+  const resolveMutation = useResolveAlert();
+  const canOperate = useCanOperate();
+  const [actionError, setActionError] = useState<{ id: string; message: string } | null>(null);
+
+  const runAction = (mutation: typeof acknowledgeMutation, id: string) => {
+    setActionError(null);
+    mutation.mutate(id, {
+      onError: (err) => setActionError({ id, message: err instanceof Error ? err.message : "Não foi possível atualizar o alerta." }),
+    });
+  };
 
   const shipmentNameMap = useMemo(() => {
     if (!shipments) return new Map<string, string>();
@@ -328,8 +353,11 @@ export default function AlertsPage() {
               key={alert.id}
               alert={alert}
               shipmentName={shipmentNameMap.get(alert.shipmentId)}
-              onAcknowledge={(id) => acknowledgeMutation.mutate(id)}
-              isAcknowledging={acknowledgeMutation.isPending}
+              onAcknowledge={(id) => runAction(acknowledgeMutation, id)}
+              onResolve={(id) => runAction(resolveMutation, id)}
+              isBusy={acknowledgeMutation.isPending || resolveMutation.isPending}
+              canOperate={canOperate}
+              actionError={actionError?.id === alert.id ? actionError.message : undefined}
             />
           ))}
         </div>

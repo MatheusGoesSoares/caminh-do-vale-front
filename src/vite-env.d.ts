@@ -2,7 +2,6 @@
 /// <reference types="vite-plugin-pwa/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_DATA_PROVIDER?: "mock" | "api";
   readonly VITE_API_BASE_URL?: string;
 }
 

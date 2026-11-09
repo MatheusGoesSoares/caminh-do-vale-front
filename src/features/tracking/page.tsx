@@ -10,6 +10,7 @@ import {
   Eye,
   List,
   Navigation,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
@@ -124,6 +125,13 @@ function DetailPanel({
           <div className="flex items-center gap-2 text-[#5B7264]">
             <Navigation className="h-4 w-4 shrink-0" />
             <span>Veículo: {shipment.vehicleId}</span>
+          </div>
+        )}
+
+        {shipment.carrier && (
+          <div className="flex items-center gap-2 text-[#5B7264]">
+            <Building2 className="h-4 w-4 shrink-0" />
+            <span>{shipment.carrier.name}</span>
           </div>
         )}
 
@@ -266,7 +274,7 @@ export default function TrackingPage() {
         {!showList && (
           <button
             onClick={() => setShowList(true)}
-            className="absolute top-3 left-3 z-10 p-2 rounded-lg bg-white shadow-md border border-[#E6F4EA] text-[#5B7264] hover:text-[#123A24] transition-colors"
+            className="absolute top-3 left-14 z-10 p-2 rounded-lg bg-white shadow-md border border-[#E6F4EA] text-[#5B7264] hover:text-[#123A24] transition-colors"
             aria-label="Mostrar lista de veículos"
           >
             <List className="h-4 w-4" />
