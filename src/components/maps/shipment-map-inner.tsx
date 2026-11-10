@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -12,6 +12,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import "leaflet/dist/leaflet.css";
 import type { Shipment, GeoPosition, EnvironmentalStatus } from "@/types";
+import type { SimulatedRoute } from "@/hooks/use-simulated-routes";
 
 const STATUS_COLORS: Record<EnvironmentalStatus, string> = {
   optimal: "#1F8A4D",
@@ -76,6 +77,17 @@ function BlockPagePinchZoom() {
   return null;
 }
 
+function FitRoute({ path }: { path: [number, number][] }) {
+  const map = useMap();
+  const key = path.length ? `${path[0]}-${path[path.length - 1]}` : "";
+  useEffect(() => {
+    if (path.length > 1) map.fitBounds(L.latLngBounds(path), { padding: [40, 40], maxZoom: 11 });
+    // Refit only when the route itself changes, not on every position update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, key]);
+  return null;
+}
+
 interface ShipmentMapInnerProps {
   shipments: Shipment[];
   selectedShipmentId?: string;
@@ -83,6 +95,7 @@ interface ShipmentMapInnerProps {
   height?: string;
   showRoute?: boolean;
   positions?: GeoPosition[];
+  routes?: Map<string, SimulatedRoute>;
 }
 
 export function ShipmentMapInner({
@@ -92,6 +105,7 @@ export function ShipmentMapInner({
   height = "400px",
   showRoute = false,
   positions = [],
+  routes,
 }: ShipmentMapInnerProps) {
   const mapRef = useRef<L.Map | null>(null);
 
@@ -99,8 +113,12 @@ export function ShipmentMapInner({
     ? shipments.find((s) => s.id === selectedShipmentId)
     : null;
 
+  const selectedRoute = selected ? routes?.get(selected.id) : undefined;
+  const onlyRoute = !selected && shipments.length === 1 ? routes?.get(shipments[0].id) : undefined;
+  const fitPath = (selectedRoute ?? onlyRoute)?.full;
+
   const flyTarget =
-    selected?.latestPosition
+    !fitPath && selected?.latestPosition
       ? {
           lat: selected.latestPosition.latitude,
           lng: selected.latestPosition.longitude,
@@ -130,6 +148,29 @@ export function ShipmentMapInner({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        {fitPath && <FitRoute path={fitPath} />}
+
+        {routes &&
+          shipments.map((shipment) => {
+            const route = routes.get(shipment.id);
+            if (!route) return null;
+            const highlighted = !selected || selected.id === shipment.id;
+            return (
+              <Fragment key={`route-${shipment.id}`}>
+                <Polyline
+                  positions={route.full}
+                  pathOptions={{ color: "#1A7A44", weight: highlighted ? 4 : 2, opacity: highlighted ? 0.35 : 0.15, dashArray: "6 8" }}
+                />
+                {route.covered.length > 1 && (
+                  <Polyline
+                    positions={route.covered}
+                    pathOptions={{ color: "#1A7A44", weight: highlighted ? 5 : 3, opacity: highlighted ? 0.9 : 0.4 }}
+                  />
+                )}
+              </Fragment>
+            );
+          })}
 
         {flyTarget && (
           <MapFlyTo
@@ -181,6 +222,13 @@ export function ShipmentMapInner({
                       </p>
                     )}
                   </div>
+                  {routes?.get(shipment.id) && (
+                    <p className="mt-1 text-xs text-[#5B7264]">
+                      Posição estimada · {Math.round(routes.get(shipment.id)!.progress * 100)}% de{" "}
+                      {Math.round(routes.get(shipment.id)!.distanceKm)} km
+                      {routes.get(shipment.id)!.approximate && " (rota aproximada)"}
+                    </p>
+                  )}
                   {lastUpdate && (
                     <p className="mt-1 text-xs text-[#5B7264]">
                       Atualizado{" "}

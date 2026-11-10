@@ -24,6 +24,7 @@ import { TimeRangeSelector } from '@/components/ui/time-range-selector';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TemperatureChart } from '@/components/charts/temperature-chart';
 import { HumidityChart } from '@/components/charts/humidity-chart';
+import { useSimulatedRoutes } from '@/hooks/use-simulated-routes';
 import {
   useDashboardSummary,
   useShipments,
@@ -99,6 +100,8 @@ export default function DashboardPage() {
       setSelectedShipmentId(inTransitShipments[0].id);
     }
   }, [inTransitShipments.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const simulated = useSimulatedRoutes(inTransitShipments);
 
   const filteredTableShipments = inTransitShipments.filter((s) => {
     if (!tableSearch) return true;
@@ -353,7 +356,8 @@ export default function DashboardPage() {
             ) : (
               <Suspense fallback={<Skeleton className="h-full w-full" />}>
                 <ShipmentMap
-                  shipments={inTransitShipments}
+                  shipments={simulated.shipments}
+                  routes={simulated.routes}
                   selectedShipmentId={selectedShipmentId}
                   onShipmentSelect={setSelectedShipmentId}
                   height="300px"

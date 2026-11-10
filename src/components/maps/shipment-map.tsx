@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import type { Shipment, GeoPosition } from "@/types";
+import type { SimulatedRoute } from "@/hooks/use-simulated-routes";
 
 const ShipmentMapInner = lazy(() =>
   import("./shipment-map-inner").then((m) => ({ default: m.ShipmentMapInner }))
@@ -12,6 +13,7 @@ interface ShipmentMapProps {
   height?: string;
   showRoute?: boolean;
   positions?: GeoPosition[];
+  routes?: Map<string, SimulatedRoute>;
 }
 
 function MapFallback({ height = "400px" }: { height?: string }) {

@@ -22,12 +22,12 @@ import { cn } from "@/lib/utils";
 import {
   useShipment,
   useReadingHistory,
-  useShipmentPositions,
   useAlerts,
   useResolveAlert,
 } from "@/hooks/use-data-service";
 import { useCanOperate } from "@/hooks/use-session";
 import { DeviceStatus, boardIsSilent } from "./components/device-status";
+import { useSimulatedRoutes } from "@/hooks/use-simulated-routes";
 import { Button } from "@/components/ui";
 import type { TimeRange, MonitoringAlert } from "@/types";
 import {
@@ -269,8 +269,9 @@ export default function ShipmentDetailPage() {
     id ?? "",
     timeRange
   );
-  const { data: positions } =
-    useShipmentPositions(id ?? "");
+  const simulated = useSimulatedRoutes(shipment ? [shipment] : undefined);
+  const mapShipment = simulated.shipments[0];
+  const route = shipment ? simulated.routes.get(shipment.id) : undefined;
   const { data: alerts, isLoading: alertsLoading } = useAlerts({
     shipmentId: id,
   });
@@ -604,14 +605,12 @@ export default function ShipmentDetailPage() {
             </div>
 
             {/* Mini map */}
-            {shipment.latestPosition && (
+            {mapShipment?.latestPosition && (
               <div className="overflow-hidden rounded-xl border border-[#E6F4EA]">
                 <Suspense fallback={<ChartSkeleton />}>
                   <ShipmentMap
-                    shipments={[shipment]}
-                    selectedShipmentId={shipment.id}
-                    positions={positions ?? []}
-                    showRoute
+                    shipments={[mapShipment]}
+                    routes={simulated.routes}
                     height="320px"
                   />
                 </Suspense>
@@ -676,41 +675,41 @@ export default function ShipmentDetailPage() {
             <div className="overflow-hidden rounded-xl border border-[#E6F4EA]">
               <Suspense fallback={<ChartSkeleton />}>
                 <ShipmentMap
-                  shipments={[shipment]}
-                  selectedShipmentId={shipment.id}
-                  positions={positions ?? []}
-                  showRoute
+                  shipments={mapShipment ? [mapShipment] : []}
+                  routes={simulated.routes}
                   height="500px"
                 />
               </Suspense>
             </div>
 
-            {positions && positions.length > 0 && (
-              <div className="rounded-xl border border-[#E6F4EA] bg-white">
-                <div className="border-b border-[#E6F4EA] px-4 py-3">
-                  <h3 className="text-sm font-semibold text-[#123A24]">
-                    Histórico de posições
-                  </h3>
+            {route ? (
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-[#E6F4EA] bg-white p-4">
+                  <p className="text-xs text-[#5B7264]">Distância pela estrada</p>
+                  <p className="text-lg font-bold text-[#123A24]">{Math.round(route.distanceKm)} km</p>
                 </div>
-                <div className="divide-y divide-[#E6F4EA]">
-                  {positions.map((pos, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-3 px-4 py-2.5"
-                    >
-                      <MapPin className="h-4 w-4 shrink-0 text-[#BFE3C8]" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-[#123A24]">
-                          {pos.latitude.toFixed(4)}, {pos.longitude.toFixed(4)}
-                        </p>
-                      </div>
-                      <span className="shrink-0 text-xs text-[#5B7264]">
-                        {formatDateTime(pos.recordedAt)}
-                      </span>
-                    </div>
-                  ))}
+                <div className="rounded-xl border border-[#E6F4EA] bg-white p-4">
+                  <p className="text-xs text-[#5B7264]">Tempo estimado de viagem</p>
+                  <p className="text-lg font-bold text-[#123A24]">
+                    {route.durationH >= 1 ? `${Math.floor(route.durationH)} h ${Math.round((route.durationH % 1) * 60)} min` : `${Math.round(route.durationH * 60)} min`}
+                  </p>
                 </div>
+                <div className="rounded-xl border border-[#E6F4EA] bg-white p-4">
+                  <p className="text-xs text-[#5B7264]">Percorrido (estimado)</p>
+                  <p className="text-lg font-bold text-[#123A24]">{Math.round(route.progress * 100)}%</p>
+                </div>
+                <p className="text-xs text-[#5B7264] sm:col-span-3">
+                  {shipment.originAddress} → {shipment.destinationAddress}. Rota real pelas estradas; a posição do caminhão
+                  é estimada pelo tempo desde o início da viagem, porque o back ainda não recebe GPS
+                  {route.approximate ? ". O serviço de rotas não respondeu, então a linha é aproximada." : "."}
+                </p>
               </div>
+            ) : (
+              <p className="text-sm text-[#5B7264]">
+                {shipment.originAddress && shipment.destinationAddress
+                  ? "Calculando a rota entre as cidades…"
+                  : "A origem ou o destino desta viagem não tem cidade cadastrada no back, então não dá para traçar a rota."}
+              </p>
             )}
           </div>
         )}

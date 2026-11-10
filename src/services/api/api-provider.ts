@@ -192,6 +192,8 @@ export class ApiDataProvider implements DataService {
       },
       origin: lookups.locations.get(api.origin)?.name ?? `Local ${api.origin}`,
       destination: lookups.locations.get(api.destination)?.name ?? `Local ${api.destination}`,
+      originAddress: lookups.locations.get(api.origin)?.address || undefined,
+      destinationAddress: lookups.locations.get(api.destination)?.address || undefined,
       logisticsStatus: logisticsByStatus[api.status],
       environmentalStatus: environmentalStatus(summary),
       environmentalLimits: {

@@ -69,6 +69,9 @@ export interface Shipment {
   device?: { uid: string; online: boolean; lastSeenAt?: string; connection?: "wifi" | "2g" };
   origin: string;
   destination: string;
+  /** City part of the backend location address, e.g. "Petrolina - PE". */
+  originAddress?: string;
+  destinationAddress?: string;
   logisticsStatus: LogisticsStatus;
   environmentalStatus: EnvironmentalStatus;
   environmentalLimits: EnvironmentalLimits;

@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
-import { useShipments, useShipmentPositions } from "@/hooks/use-data-service";
+import { useShipments } from "@/hooks/use-data-service";
+import { useSimulatedRoutes } from "@/hooks/use-simulated-routes";
 import {
   formatTemperature,
   formatHumidity,
@@ -201,6 +202,9 @@ function Legend() {
           <span className="text-xs text-[#5B7264]">{item.label}</span>
         </div>
       ))}
+      <p className="basis-full text-[11px] text-[#5B7264]">
+        Posição estimada pela rota real entre as cidades e pelo tempo de viagem (sem GPS).
+      </p>
     </div>
   );
 }
@@ -210,11 +214,10 @@ export default function TrackingPage() {
   // On small screens the list would cover most of the map.
   const [showList, setShowList] = useState(() => window.innerWidth >= 1024);
 
-  const { data: shipments, isLoading } = useShipments();
-  const { data: positions } = useShipmentPositions(selectedId ?? "");
+  const { data: rawShipments, isLoading } = useShipments();
+  const { shipments, routes } = useSimulatedRoutes(rawShipments);
 
   const trackedShipments = useMemo(() => {
-    if (!shipments) return [];
     return shipments.filter(
       (s) => s.latestPosition && ["in_transit", "loading", "stopped"].includes(s.logisticsStatus)
     );
@@ -291,8 +294,7 @@ export default function TrackingPage() {
             shipments={trackedShipments}
             selectedShipmentId={selectedId ?? undefined}
             onShipmentSelect={(id) => setSelectedId(id)}
-            positions={positions ?? undefined}
-            showRoute={!!selectedId && !!positions?.length}
+            routes={routes}
             height="100%"
           />
         </Suspense>
