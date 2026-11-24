@@ -9,8 +9,12 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
+  // The dev server compiles each screen on first use; more browsers at once only slow it down.
+  workers: 3,
   retries: process.env.CI ? 2 : 0,
   reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
+  // npm run test:e2e:coverage: merges the coverage collected in each test (e2e/support/coverage.ts).
+  globalTeardown: "./e2e/support/coverage-teardown.ts",
   use: {
     baseURL: `http://localhost:${PORT}`,
     // Uses the installed Google Chrome; PW_CHANNEL= (empty) switches to Playwright's own Chromium.
@@ -18,11 +22,15 @@ export default defineConfig({
     locale: "pt-BR",
     timezoneId: "America/Recife",
     viewport: { width: 1280, height: 720 },
+    // The PWA service worker would send API calls around the simulated backend (page.route does not see them).
+    serviceWorkers: "block",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
   projects: [
     { name: "e2e" },
+    // Same tests, also measuring which screen code they run (report in coverage-e2e/).
+    { name: "coverage" },
     {
       // Slow, captioned run of the full journey, recorded on video for the presentation.
       name: "demo",

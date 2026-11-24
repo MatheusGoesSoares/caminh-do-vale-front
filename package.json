@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test --project=e2e",
     "test:e2e:demo": "playwright test --project=demo",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:coverage": "playwright test --project=coverage"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.5",
@@ -40,6 +41,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "jsdom": "^30.1.3",
+    "monocart-coverage-reports": "^3.3.0",
     "oxlint": "^1.88.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",

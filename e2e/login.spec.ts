@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./support/coverage";
 import { mockApi, RECOVERY_CODES, SECRET, USER, VALID_CODE, VALID_RECOVERY, type Scenario } from "./support/api";
 import { step } from "./support/demo";
 
@@ -64,7 +65,8 @@ test.describe("Login com verificação em duas etapas", () => {
       await page.getByRole("button", { name: "Sair" }).click();
       await expect(page).toHaveURL(/\/login$/);
     });
-    expect(calls.some((c) => c.path === "/auth/logout" && c.body.refresh === "refresh-demo")).toBe(true);
+    // The logout request goes out in the background (leaving never waits for the network).
+    await expect.poll(() => calls.some((c) => c.path === "/auth/logout" && c.body.refresh === "refresh-demo")).toBe(true);
   });
 
   test("acessos seguintes: entra com o código do aplicativo", async ({ page }) => {
